@@ -3,8 +3,9 @@ import { Link } from 'react-router-dom';
 
 const Sidebar = ({ onClose, isCollapsed, onToggleCollapse, profile }) => {
   const menuItems = [
-    { label: 'Home', path: '/dashboard', icon: 'M3 12a9 9 0 0110 8.95V22H7a2 2 0 01-2-2v-6.5V12zm0 0h4v-4a1 1 0 011-1h6a1 1 0 011 1v4h4V7a1 1 0 011 1v4h4' },
+    { label: 'Dashboard ', path: '/dashboard', icon: 'M3 12a9 9 0 0110 8.95V22H7a2 2 0 01-2-2v-6.5V12zm0 0h4v-4a1 1 0 011-1h6a1 1 0 011 1v4h4V7a1 1 0 011 1v4h4' },
     { label: 'Register New Organization', path: '/dashboard/register-organization', icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
+    { label: 'Organization List', path: '/dashboard/organization-list', icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
     { label: 'Contact', path: '/dashboard/contact', icon: 'M20 13H4a2 2 0 00-2 2v4a2 2 0 002 2h16a2 2 0 002-2v-4a2 2 0 00-2-2zM4 5a2 2 0 012-2h12a2 2 0 012 2v4H4V5z' },
     { label: 'About', path: '/dashboard/about', icon: 'M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z' },
   ];

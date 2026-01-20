@@ -21,22 +21,17 @@ const Login = () => {
 
     setLoading(true);
     setError('');
-    console.log('Starting login process...');
     
     try {
       const response = await login({ email: email.trim(), password: password.trim() });
-      console.log('Login response:', );
+
       
       if (response.success) {
-        console.log('✓ Login successful, navigating to dashboard');
         navigate('/dashboard');
       } else {
-        debugger;
-        console.log('✗ Login failed:', 'Invalid credentials');
         setError('Invalid credentials');
       }
     } catch (err) {
-      console.error('Login exception:', err);
       setError('Something went wrong. Please try again.');
     } finally {
       setLoading(false);
@@ -93,7 +88,7 @@ const Login = () => {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full px-4 py-2.5 text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 placeholder-gray-400"
-                placeholder="you@example.com"
+                placeholder="Enter your email"
               />
             </div>
 
@@ -113,7 +108,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className="w-full px-4 py-2.5 text-gray-900 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200 placeholder-gray-400 pr-12"
-                  placeholder="••••••••"
+                  placeholder="Password"
                 />
                 <button
                   type="button"
@@ -173,7 +168,7 @@ const Login = () => {
                 <span className="text-gray-600">Remember me</span>
               </label>
               <a
-                href="#"
+                href="/forgot-password"
                 className="text-indigo-600 hover:text-indigo-700 font-medium transition"
               >
                 Forgot password?
@@ -215,16 +210,7 @@ const Login = () => {
             </button>
           </form>
 
-          {/* Footer */}
-          <p className="text-center text-gray-600 text-sm mt-6">
-            Don't have an account?{' '}
-            <a
-              href="/signup"
-              className="text-indigo-600 hover:text-indigo-700 font-semibold transition"
-            >
-              Create one
-            </a>
-          </p>
+        
         </div>
 
         {/* Additional Info */}

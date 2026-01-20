@@ -206,8 +206,34 @@ export const apiCall = async (endpoint, method = 'GET', body = null) => {
 
 // Register Organization API Call
 export const registerOrganization = async (formData) => {
-  try {
+    try {
     console.log('Sending organization registration request with:', formData);
+    
+    // Clean the data - remove optional fields if empty
+    const cleanedData = { ...formData };
+    
+    // Rule 1: Organization Name - Trim spaces
+    if (cleanedData.name) {
+      cleanedData.name = cleanedData.name.trim();
+    }
+
+    // Rule 2: Registration Number - Stored in UPPERCASE
+    if (cleanedData.registrationNo) {
+      cleanedData.registrationNo = cleanedData.registrationNo.trim().toUpperCase();
+    }
+
+    // Remove optional fields if they are empty strings
+    if (!cleanedData.subtypeClassId) {
+      delete cleanedData.subtypeClassId;
+    }
+    if (!cleanedData.websiteUrl) {
+      delete cleanedData.websiteUrl;
+    }
+    if (!cleanedData.address) {
+      delete cleanedData.address;
+    }
+
+    console.log('Cleaned data being sent:', cleanedData);
     
     const token = localStorage.getItem('authToken');
     const headers = {
@@ -223,7 +249,7 @@ export const registerOrganization = async (formData) => {
     const response = await fetch(`${API_BASE_URL}/organizations`, {
       method: 'POST',
       headers,
-      body: JSON.stringify(formData),
+      body: JSON.stringify(cleanedData),
     });
 
     console.log('Response status:', response.status);
@@ -247,9 +273,116 @@ export const registerOrganization = async (formData) => {
   }
 };
 
+// Get Packages
+export const getPackages = async () => {
+  try {
+    const token = localStorage.getItem('authToken');
+    const headers = {
+      'Accept': 'application/json',
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/admin/packages`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!response.ok) {
+      return { success: false, message: `Error: ${response.status}` };
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error fetching packages:', error);
+    return { success: false, message: 'Failed to fetch packages' };
+  }
+};
+
+// Register Organization Admin
+export const registerOrgAdmin = async (organizationId, adminData) => {
+  debugger;
+    try {
+    const token = localStorage.getItem('authToken');
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/users/organizations/${organizationId}/org-admin`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(adminData),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return { success: false, message: errorData.message || `Error: ${response.status}` };
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error registering admin:', error);
+    return { success: false, message: 'Failed to register admin' };
+  }
+};
+
+// Get Organizations List
+export const getOrganizations = async (params) => {
+  try {
+    console.log('Fetching organizations list with params:', params);
+    
+    const token = localStorage.getItem('authToken');
+    const headers = {
+      'Accept': 'application/json',
+    };
+
+    // Add token if available
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const queryParams = new URLSearchParams();
+    if (params) {
+      if (params.search) queryParams.append('search', params.search);
+      if (params.page !== undefined) queryParams.append('page', params.page);
+      if (params.size !== undefined) queryParams.append('size', params.size);
+      if (params.sort) queryParams.append('sort', params.sort);
+    }
+    const queryString = queryParams.toString();
+
+    const response = await fetch(`${API_BASE_URL}/admin/organizations${queryString ? `?${queryString}` : ''}`, {
+      method: 'GET',
+      headers,
+    });
+
+    console.log('Get organizations response status:', response.status);
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Error fetching organizations:', errorData);
+      return { success: false, data: [], message: `Error: ${response.status}` };
+    }
+
+    const data = await response.json();
+    console.log('Organizations fetched:', data);
+    
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error fetching organizations:', error);
+    return { success: false, data: [], message: 'Failed to fetch organizations' };
+  }
+};
+
 // Get Organization Categories
 export const getCategories = async () => {
-    debugger;
+    
   try {
     console.log('Fetching organization categories...');
     
@@ -359,6 +492,204 @@ export const getSubtypeClasses = async (subtypeId) => {
   } catch (error) {
     console.error('Error fetching subtype classes:', error);
     return { success: false, data: [], message: 'Failed to fetch subtype classes' };
+  }
+};
+
+// Forgot Password API Call
+export const forgotPassword = async (email) => {
+  try {
+    console.log('Sending forgot password request for:', email);
+    
+    const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ 
+        email,
+        clientUrl: `${window.location.origin}/resetpassword`
+      }),
+    });
+
+    console.log('Forgot password response status:', response.status);
+
+    // Parse response body safely: prefer JSON, fall back to text
+    const parseBody = async (resp) => {
+      const contentType = resp.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        return resp.json().catch(() => ({}));
+      }
+      return resp.text();
+    };
+    
+    if (!response.ok) {
+      const errorData = await parseBody(response);
+      console.error('Error response:', errorData);
+      const message = typeof errorData === 'string' && errorData.trim()
+        ? errorData
+        : errorData.message || `Error: ${response.status}`;
+      return { success: false, message };
+    }
+
+    const data = await parseBody(response);
+    console.log('Forgot password response:', data);
+    const successMessage = typeof data === 'string' && data.trim()
+      ? data
+      : 'Check your email for reset instructions';
+    
+    return { success: true, data, message: successMessage };
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    return { success: false, message: error.message || 'Network error' };
+  }
+};
+
+// Reset Password API Call
+export const resetPassword = async (token, newPassword, confirmPassword) => {
+  try {
+    console.log('Sending reset password request');
+    
+    const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ token, newPassword, confirmPassword }),
+    });
+
+    console.log('Reset password response status:', response.status);
+
+    // Parse response body safely: prefer JSON, fall back to text
+    const parseBody = async (resp) => {
+      const contentType = resp.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        return resp.json().catch(() => ({}));
+      }
+      return resp.text();
+    };
+    
+    if (!response.ok) {
+      const errorData = await parseBody(response);
+      console.error('Error response:', errorData);
+      const message = typeof errorData === 'string' && errorData.trim()
+        ? errorData
+        : errorData.message || `Error: ${response.status}`;
+      return { success: false, message };
+    }
+
+    const data = await parseBody(response);
+    console.log('Reset password response:', data);
+    const successMessage = typeof data === 'string' && data.trim()
+      ? data
+      : 'Password reset successfully';
+    
+    return { success: true, data, message: successMessage };
+  } catch (error) {
+    console.error('Reset password error:', error);
+    return { success: false, message: error.message || 'Network error' };
+  }
+};
+
+// Set Password API Call
+export const setPassword = async (token, newPassword, confirmPassword) => {
+  try {
+    console.log('Sending set password request');
+    
+    const response = await fetch(`${API_BASE_URL}/auth/set-password`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
+      body: JSON.stringify({ token, newPassword, confirmPassword }),
+    });
+
+    console.log('Set password response status:', response.status);
+
+    // Parse response body safely: prefer JSON, fall back to text
+    const parseBody = async (resp) => {
+      const contentType = resp.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        return resp.json().catch(() => ({}));
+      }
+      return resp.text();
+    };
+    
+    if (!response.ok) {
+      const errorData = await parseBody(response);
+      console.error('Error response:', errorData);
+      const message = typeof errorData === 'string' && errorData.trim()
+        ? errorData
+        : errorData.message || `Error: ${response.status}`;
+      return { success: false, message };
+    }
+
+    const data = await parseBody(response);
+    console.log('Set password response:', data);
+    const successMessage = typeof data === 'string' && data.trim()
+      ? data
+      : 'Password set successfully';
+    
+    return { success: true, data, message: successMessage };
+  } catch (error) {
+    console.error('Set password error:', error);
+    return { success: false, message: error.message || 'Network error' };
+  }
+};
+
+// Change Password API Call
+export const changePassword = async (currentPassword, newPassword, confirmPassword) => {
+  try {
+    console.log('Sending change password request');
+    
+    const token = localStorage.getItem('authToken');
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/auth/change-password`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ currentPassword, newPassword, confirmPassword }),
+    });
+
+    console.log('Change password response status:', response.status);
+
+    // Parse response body safely: prefer JSON, fall back to text
+    const parseBody = async (resp) => {
+      const contentType = resp.headers.get('content-type') || '';
+      if (contentType.includes('application/json')) {
+        return resp.json().catch(() => ({}));
+      }
+      return resp.text();
+    };
+
+    if (!response.ok) {
+      const errorData = await parseBody(response);
+      console.error('Error response:', errorData);
+      const message = typeof errorData === 'string' && errorData.trim()
+        ? errorData
+        : errorData.message || `Error: ${response.status}`;
+      return { success: false, message };
+    }
+
+    const data = await parseBody(response);
+    console.log('Change password response:', data);
+    const successMessage = typeof data === 'string' && data.trim()
+      ? data
+      : 'Password changed successfully';
+
+    return { success: true, data, message: successMessage };
+  } catch (error) {
+    console.error('Change password error:', error);
+    return { success: false, message: error.message || 'Network error' };
   }
 };
   
