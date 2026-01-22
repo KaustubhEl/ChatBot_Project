@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getMe } from '../services/api';
 
 const Profile = () => {
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -109,7 +111,10 @@ const Profile = () => {
               <h1 className="text-3xl font-bold text-gray-900">{fullName}</h1>
               <p className="text-gray-600 mt-1 capitalize font-medium">{roleDisplay}</p>
             </div>
-            <button className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition duration-200 w-full sm:w-auto">
+            <button 
+              onClick={() => navigate('/dashboard/user-detail')}
+              className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold rounded-lg transition duration-200 w-full sm:w-auto"
+            >
               Edit Profile
             </button>
           </div>
@@ -180,7 +185,7 @@ const Profile = () => {
             </div>
             <div className="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
               <span className="text-gray-700 font-medium">Organization</span>
-              <span className="text-gray-900 font-semibold">{profile.organization || 'N/A'}</span>
+              <span className="text-gray-900 font-semibold">{profile.organization?.name || (typeof profile.organization === 'string' ? profile.organization : 'N/A')}</span>
             </div>
           </div>
         </div>

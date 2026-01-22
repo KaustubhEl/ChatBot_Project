@@ -6,6 +6,7 @@ import Home from './Home';
 import RegisterOrganization from './RegisterOrganization';
 import ChangePassword from './ChangePassword';
 import OrganizationList from './OrganizationList';
+import UserDetail from './UserDetail';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -19,6 +20,7 @@ const Dashboard = () => {
       try {
         const response = await getMe();
         if (response.success) {
+          console.log(response.data);
           setProfile(response.data);
         }
       } catch (error) {
@@ -185,6 +187,7 @@ const Dashboard = () => {
                 <Route path="register-organization" element={<RegisterOrganization />} />
                 <Route path="change-password" element={<ChangePassword />} />
                 <Route path="organization-list" element={<OrganizationList />} />
+                <Route path="user-detail" element={<UserDetail />} />
             </Routes>
           </div>
         </main>

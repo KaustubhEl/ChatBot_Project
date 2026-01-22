@@ -692,4 +692,75 @@ export const changePassword = async (currentPassword, newPassword, confirmPasswo
     return { success: false, message: error.message || 'Network error' };
   }
 };
+
+// Update User Profile
+export const updateMe = async (userData) => {
+    debugger;
+  try {
+    console.log('Updating user profile with:', userData);
+    const token = localStorage.getItem('authToken');
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/users/update-profile`, {
+      method: 'PATCH',
+      headers,
+      body: JSON.stringify(userData),
+    });
+
+    console.log('Update profile response status:', response.status);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('Error updating profile:', errorData);
+      return { success: false, message: errorData.message || `Error: ${response.status}` };
+    }
+
+    const data = await response.json();
+    console.log('Profile updated:', data);
+    
+    return { success: true, data };
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return { success: false, message: error.message || 'Network error' };
+  }
+};
+
+// Subscribe Package to Organization
+export const subscribePackage = async (organizationId, packageId) => {
+  try {
+    console.log(`Subscribing organization ${organizationId} to package ${packageId}`);
+    const token = localStorage.getItem('authToken');
+    const headers = {
+      'Content-Type': 'application/json',
+      'Accept': 'application/json',
+    };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/admin/organizations/${organizationId}/subscriptions`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ packageId }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      return { success: false, message: errorData.message || `Error: ${response.status}` };
+    }
+
+    const data = await response.json();
+    return { success: true, data };
+  } catch (error) {
+    console.error('Error subscribing package:', error);
+    return { success: false, message: 'Failed to subscribe package' };
+  }
+};
   
